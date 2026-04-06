@@ -163,14 +163,9 @@ mcp = FastMCP("ghosttype")
 
 @mcp.tool()
 async def type_text(text: str) -> str:
-    """Type a string of text on the connected computer.
-
-    Characters are sent as USB HID keystrokes. Supports ASCII printable
-    characters, newlines (Enter), and tabs. For the correct language output,
-    ensure the target computer has the matching keyboard layout active.
-
-    Args:
-        text: The text to type. Use \\n for Enter key.
+    """Type ASCII text as HID keystrokes. Use \\n for Enter, \\t for Tab.
+    Non-ASCII (emoji, CJK, Cyrillic) is UNSUPPORTED — use OS keyboard layout.
+    Example: type_text("hello\\nworld")
     """
     data = text.encode("ascii", errors="ignore")
     if not data:
@@ -184,12 +179,9 @@ async def type_text(text: str) -> str:
 
 @mcp.tool()
 async def press_key(key: str, count: int = 1) -> str:
-    """Press a special key one or more times.
-
-    Args:
-        key: Key name. Options: enter, escape, backspace, tab, delete, insert,
-             home, end, pageup, pagedown, up, down, left, right, f1-f12, space.
-        count: Number of times to press (1-50).
+    """Press a special key. count: 1-50.
+    Keys: enter escape backspace tab delete insert home end
+          pageup pagedown up down left right f1-f12 space
     """
     key_lower = key.lower().strip()
     if key_lower not in SPECIAL_KEYS:
@@ -208,15 +200,9 @@ async def press_key(key: str, count: int = 1) -> str:
 
 @mcp.tool()
 async def combo_keys(keys: list[str]) -> str:
-    """Press a key combination (up to 5 keys simultaneously).
-
-    Keys are pressed together and released. Use modifier names and key names.
-
-    Args:
-        keys: List of key names to press together.
-              Modifiers: ctrl, shift, alt, win/gui/cmd/super/meta.
-              Plus any special key or single ASCII character.
-              Examples: ["ctrl", "c"], ["ctrl", "shift", "s"], ["alt", "tab"], ["win", "r"]
+    """Press up to 5 keys simultaneously.
+    Modifiers: ctrl shift alt win  |  Plus: any special key or ASCII char.
+    Ex: ["ctrl","c"] ["ctrl","shift","s"] ["alt","tab"] ["win","r"]
     """
     if len(keys) < 1 or len(keys) > 5:
         return "Error: combo requires 1-5 keys"
@@ -241,10 +227,7 @@ async def combo_keys(keys: list[str]) -> str:
 
 @mcp.tool()
 async def health_check() -> str:
-    """Check the BLE connection status and device availability.
-
-    Returns connection state, device address, and performs a connectivity test.
-    """
+    """Check BLE connection state and device availability."""
     info = {"connected": ble.is_connected, "address": ble._address}
 
     if not ble.is_connected:
