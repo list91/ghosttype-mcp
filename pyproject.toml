@@ -1,0 +1,18 @@
+[project]
+name = "ghosttype-mcp"
+version = "0.1.0"
+description = "BLE-to-USB HID keyboard bridge as MCP server"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+dependencies = [
+    "mcp>=1.0.0",
+    "bleak>=0.21.0",
+]
+
+[project.scripts]
+ghosttype-mcp = "ghosttype_mcp:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
