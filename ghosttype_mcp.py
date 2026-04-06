@@ -46,6 +46,32 @@ MODIFIER_KEYS = {
 
 ALL_KEYS = {**SPECIAL_KEYS, **MODIFIER_KEYS}
 
+# Russian ЙЦУКЕН → US QWERTY scancode mapping (target computer must have RU layout active)
+CYRILLIC_TO_SCANCODE = {
+    "й": "q", "ц": "w", "у": "e", "к": "r", "е": "t", "н": "y", "г": "u",
+    "ш": "i", "щ": "o", "з": "p", "х": "[", "ъ": "]", "ф": "a", "ы": "s",
+    "в": "d", "а": "f", "п": "g", "р": "h", "о": "j", "л": "k", "д": "l",
+    "ж": ";", "э": "'", "я": "z", "ч": "x", "с": "c", "м": "v", "и": "b",
+    "т": "n", "ь": "m", "б": ",", "ю": ".", "ё": "`",
+    "Й": "Q", "Ц": "W", "У": "E", "К": "R", "Е": "T", "Н": "Y", "Г": "U",
+    "Ш": "I", "Щ": "O", "З": "P", "Х": "{", "Ъ": "}", "Ф": "A", "Ы": "S",
+    "В": "D", "А": "F", "П": "G", "Р": "H", "О": "J", "Л": "K", "Д": "L",
+    "Ж": ":", "Э": "\"", "Я": "Z", "Ч": "X", "С": "C", "М": "V", "И": "B",
+    "Т": "N", "Ь": "M", "Б": "<", "Ю": ">", "Ё": "~",
+}
+
+
+def text_to_scancodes(text: str) -> bytes:
+    """Convert text (ASCII + Cyrillic) to scancode bytes."""
+    result = []
+    for ch in text:
+        if ch in CYRILLIC_TO_SCANCODE:
+            result.append(ord(CYRILLIC_TO_SCANCODE[ch]))
+        elif ord(ch) < 128:
+            result.append(ord(ch))
+        # skip unsupported chars
+    return bytes(result)
+
 
 class BLEThread:
     """Runs bleak in a dedicated asyncio event loop on a separate thread."""
@@ -163,17 +189,22 @@ mcp = FastMCP("ghosttype")
 
 @mcp.tool()
 async def type_text(text: str) -> str:
-    """Type ASCII text as HID keystrokes. Use \\n for Enter, \\t for Tab.
-    Non-ASCII (emoji, CJK, Cyrillic) is UNSUPPORTED — use OS keyboard layout.
-    Example: type_text("hello\\nworld")
+    """Type text as HID keystrokes. Supports ASCII + Cyrillic.
+    Use \\n for Enter, \\t for Tab.
+    Cyrillic requires RU keyboard layout active on target computer.
+    Example: type_text("hello\\nworld"), type_text("привет мир")
     """
-    data = text.encode("ascii", errors="ignore")
+    data = text_to_scancodes(text)
     if not data:
-        return "Error: no valid ASCII characters in text"
+        return "Error: no supported characters in text"
 
+    has_cyrillic = any(ch in CYRILLIC_TO_SCANCODE for ch in text)
     ok = ble.send(data)
     if ok:
-        return f"Typed {len(data)} characters"
+        msg = f"Typed {len(data)} characters"
+        if has_cyrillic:
+            msg += " (Cyrillic — ensure RU layout is active on target)"
+        return msg
     return "Error: failed to send — check BLE connection"
 
 
