@@ -1,99 +1,130 @@
-# ClawTap MCP
+<div align="center">
 
-BLE-to-USB HID keyboard bridge exposed as an [MCP](https://modelcontextprotocol.io/) server.
+<img src="logo.png" alt="ClawTap" width="180">
 
-**Send keystrokes to any computer via Bluetooth** — let AI assistants type on your machine through a hardware bridge.
+# ClawTap
 
-## Architecture
+**Wireless keyboard bridge — type on any computer from your phone or AI assistant**
+
+[![PyPI](https://img.shields.io/pypi/v/clawtap-mcp?color=orange&label=PyPI)](https://pypi.org/project/clawtap-mcp/)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+</div>
+
+---
+
+A tiny two-chip device that receives text over Bluetooth and types it as a real USB keyboard. Works with Claude, any MCP-compatible AI, or any BLE app on your phone.
 
 ```
-Claude / AI  →  MCP Server (Python)  →  BLE  →  ESP32  →  UART  →  RP2040  →  USB HID  →  Computer
+Phone / AI  →  BLE  →  ESP32  →  UART  →  RP2040  →  USB HID  →  💻
 ```
 
-## Prerequisites
-
-- **Bluetooth adapter** on the host machine (built-in or USB dongle)
-- **Python 3.10+**
-- **Hardware** (see below)
-
-## Install MCP Server
+## Quick Start
 
 ```bash
-# Claude Code / Claude Desktop
 claude mcp add clawtap -- uvx clawtap-mcp
+```
 
-# Or manually
+Or install manually:
+
+```bash
 pip install clawtap-mcp
 ```
 
-## Hardware Setup
+## Hardware
 
-### Components
+Three components, three wires, zero soldering skills required.
 
-| Component | Role | Price |
-|-----------|------|-------|
-| ESP32-WROOM-32 | BLE receiver | ~$4 |
-| Waveshare RP2040-Zero | USB HID keyboard | ~$3 |
-| 3 DuPont wires | Connection | ~$0 |
+| Component | Role | ~Price |
+|-----------|------|:------:|
+| ESP32-WROOM-32 | 2.4 GHz wireless receiver | $4 |
+| Waveshare RP2040-Zero | USB HID keyboard controller | $3 |
+| 3× DuPont wires | Connection | — |
 
 ### Wiring
 
 ```
 ESP32              RP2040-Zero
 ─────              ───────────
-GPIO17 (TX) ─────► GP1 (UART0 RX)
+GPIO17 (TX) ─────► GP1 (RX)
 GND ─────────────► GND
 VIN ◄──────────── 5V (VBUS)
 ```
 
-RP2040-Zero plugs into the target computer via USB-C. ESP32 is powered from RP2040's 5V pin.
+Plug RP2040-Zero into the target computer via USB-C. ESP32 is powered from RP2040's 5V.
 
 ### Firmware
 
-#### ESP32 (BLE receiver)
+Firmware source: [`clawtap-firmware`](https://github.com/list91/clawtap-firmware)
+
+<details>
+<summary><b>ESP32 — wireless receiver</b></summary>
 
 ```bash
-# Install ESP32 core
 arduino-cli core install esp32:esp32
-
-# Compile and upload (ESP32 connected via USB)
 arduino-cli compile --fqbn esp32:esp32:esp32 firmware/esp32-ble-receiver/
-arduino-cli upload --fqbn esp32:esp32:esp32 --port COMx firmware/esp32-ble-receiver/
+arduino-cli upload  --fqbn esp32:esp32:esp32 --port COMx firmware/esp32-ble-receiver/
 ```
 
-The ESP32 advertises as **"ClawTap"** over BLE using Nordic UART Service.
+Advertises as **"ClawTap"** over BLE (Nordic UART Service).
 
-#### RP2040-Zero (USB HID keyboard)
+</details>
+
+<details>
+<summary><b>RP2040-Zero — USB keyboard</b></summary>
 
 ```bash
-# Install RP2040 core
 arduino-cli core install rp2040:rp2040 \
   --additional-urls https://github.com/earlephilhower/arduino-pico/releases/download/global/package_rp2040_index.json
-
-# Compile
 arduino-cli compile --fqbn rp2040:rp2040:waveshare_rp2040_zero firmware/rp2040-hid-keyboard/
-
-# Flash: hold BOOT button, plug USB-C, copy .uf2 to RPI-RP2 drive
 ```
+
+Flash: hold **BOOT**, plug USB-C, copy `.uf2` to the `RPI-RP2` drive.
+
+</details>
 
 ## MCP Tools
 
-| Tool | Description |
+| Tool | What it does |
 |------|-------------|
-| `type_text` | Type ASCII text as HID keystrokes |
-| `press_key` | Press a special key (enter, escape, f1-f12, arrows, etc.) |
-| `combo_keys` | Press a key combination up to 5 keys (ctrl+c, alt+tab, win+r) |
-| `health_check` | Check BLE connection status and device availability |
+| `type_text(text)` | Type text as keystrokes. Supports ASCII + Cyrillic |
+| `press_key(key, count)` | Press a special key: `enter`, `escape`, `backspace`, `f1`–`f12`, arrows |
+| `combo_keys(keys)` | Key combo up to 5 keys: `["ctrl","c"]`, `["alt","tab"]`, `["win","r"]` |
+| `health_check()` | Check wireless connection and device status |
+
+### Examples
+
+```python
+# Type text
+type_text("Hello World!\n")
+
+# Cyrillic (target must have RU layout active)
+type_text("Привет мир")
+
+# Key combos
+combo_keys(["ctrl", "c"])      # Copy
+combo_keys(["alt", "tab"])     # Switch window
+combo_keys(["win", "r"])       # Run dialog
+
+# Special keys
+press_key("backspace", 5)      # Delete 5 chars
+press_key("enter")
+```
 
 ## Troubleshooting
 
-| Problem | Solution |
-|---------|----------|
-| `ClawTap not found` | Ensure ESP32 is powered and not connected to another BLE client. Press RESET on ESP32. |
-| Text appears as wrong characters | Switch keyboard layout on target computer (e.g. EN for English text) |
-| BLE disconnects frequently | Keep ESP32 within 10m range. Check power supply stability. |
-| RP2040 not recognized as keyboard | Re-flash firmware. Try different USB port. |
+| Problem | Fix |
+|---------|-----|
+| Device not found | Power cycle ESP32. Make sure no other app is connected to it |
+| Wrong characters | Check keyboard layout on target computer (EN for English, RU for Cyrillic) |
+| Disconnects | Stay within 10m. Check USB power stability |
 
 ## License
 
 MIT
+
+---
+
+<div align="center">
+<sub>Formerly <a href="https://pypi.org/project/ghosttype-mcp/">ghosttype-mcp</a></sub>
+</div>
