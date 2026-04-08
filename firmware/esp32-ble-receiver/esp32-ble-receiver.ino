@@ -1,4 +1,4 @@
-// GhostType — ESP32 BLE Receiver
+// ClawTap — ESP32 BLE Receiver
 // Принимает текст по BLE (Nordic UART Service) и отправляет на Serial2 TX
 // Подключение: ESP32 GPIO17 (TX2) → RP2040 GP1 (UART0 RX)
 
@@ -47,7 +47,7 @@ void setup() {
   Serial.begin(115200);
   Serial2.begin(9600, SERIAL_8N1, SERIAL_RX_PIN, SERIAL_TX_PIN);
 
-  BLEDevice::init("GhostType");
+  BLEDevice::init("ClawTap");
   BLEServer *pServer = BLEDevice::createServer();
   pServer->setCallbacks(new ServerCallbacks());
 
@@ -70,7 +70,7 @@ void setup() {
   pAdvertising->setScanResponse(true);
   pAdvertising->start();
 
-  Serial.println("GhostType BLE ready, waiting for connection...");
+  Serial.println("ClawTap BLE ready, waiting for connection...");
 }
 
 void loop() {

@@ -1,4 +1,4 @@
-// GhostType — RP2040-Zero UART-to-USB-HID Keyboard
+// ClawTap — RP2040-Zero UART-to-USB-HID Keyboard
 // Принимает текст по аппаратному UART (от ESP32) и печатает как USB HID клавиатура
 // Подключение: ESP32 GPIO17 (TX) → RP2040 GP1 (UART0 RX)
 //

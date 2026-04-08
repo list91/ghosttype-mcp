@@ -1,4 +1,4 @@
-# GhostType MCP
+# ClawTap MCP
 
 BLE-to-USB HID keyboard bridge exposed as an [MCP](https://modelcontextprotocol.io/) server.
 
@@ -20,10 +20,10 @@ Claude / AI  →  MCP Server (Python)  →  BLE  →  ESP32  →  UART  →  RP2
 
 ```bash
 # Claude Code / Claude Desktop
-claude mcp add ghosttype -- uvx ghosttype-mcp
+claude mcp add clawtap -- uvx clawtap-mcp
 
 # Or manually
-pip install ghosttype-mcp
+pip install clawtap-mcp
 ```
 
 ## Hardware Setup
@@ -61,7 +61,7 @@ arduino-cli compile --fqbn esp32:esp32:esp32 firmware/esp32-ble-receiver/
 arduino-cli upload --fqbn esp32:esp32:esp32 --port COMx firmware/esp32-ble-receiver/
 ```
 
-The ESP32 advertises as **"GhostType"** over BLE using Nordic UART Service.
+The ESP32 advertises as **"ClawTap"** over BLE using Nordic UART Service.
 
 #### RP2040-Zero (USB HID keyboard)
 
@@ -89,7 +89,7 @@ arduino-cli compile --fqbn rp2040:rp2040:waveshare_rp2040_zero firmware/rp2040-h
 
 | Problem | Solution |
 |---------|----------|
-| `GhostType not found` | Ensure ESP32 is powered and not connected to another BLE client. Press RESET on ESP32. |
+| `ClawTap not found` | Ensure ESP32 is powered and not connected to another BLE client. Press RESET on ESP32. |
 | Text appears as wrong characters | Switch keyboard layout on target computer (e.g. EN for English text) |
 | BLE disconnects frequently | Keep ESP32 within 10m range. Check power supply stability. |
 | RP2040 not recognized as keyboard | Re-flash firmware. Try different USB port. |

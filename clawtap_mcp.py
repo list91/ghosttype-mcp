@@ -1,4 +1,4 @@
-"""GhostType MCP Server — BLE-to-USB HID keyboard bridge."""
+"""ClawTap MCP Server — BLE-to-USB HID keyboard bridge."""
 
 import asyncio
 import logging
@@ -8,11 +8,11 @@ from concurrent.futures import Future
 from mcp.server.fastmcp import FastMCP
 
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("ghosttype")
+logger = logging.getLogger("clawtap")
 
 # Nordic UART Service
 NUS_RX_UUID = "6e400002-b5a3-f393-e0a9-e50e24dcca9e"
-DEVICE_NAME = "GhostType"
+DEVICE_NAME = "ClawTap"  # Also accepts "GhostType" during transition
 BLE_MTU = 20
 
 SPECIAL_KEYS = {
@@ -102,10 +102,10 @@ class BLEThread:
         from bleak import BleakScanner
 
         async def _discover():
-            logger.info("Scanning for GhostType...")
+            logger.info("Scanning for ClawTap...")
             devices = await BleakScanner.discover(timeout=10.0)
             for d in devices:
-                if d.name and "ghosttype" in d.name.lower():
+                if d.name and (d.name.lower() in ("clawtap", "ghosttype")):
                     logger.info(f"Found: {d.name} @ {d.address}")
                     self._address = d.address
                     return d.address
@@ -184,7 +184,7 @@ class BLEThread:
 ble = BLEThread()
 ble.start()
 
-mcp = FastMCP("ghosttype")
+mcp = FastMCP("clawtap")
 
 
 @mcp.tool()
@@ -269,10 +269,10 @@ async def health_check() -> str:
             info["reconnected"] = ok
         else:
             info["device_found"] = False
-            return f"GhostType not found. Ensure ESP32 is powered. Status: {info}"
+            return f"ClawTap not found. Ensure ESP32 is powered. Status: {info}"
 
     info["status"] = "ok"
-    return f"GhostType connected and ready. {info}"
+    return f"ClawTap connected and ready. {info}"
 
 
 def main():
